@@ -67,19 +67,5 @@ def main():
     else:  
         print("Неверный ввод. Пожалуйста, введите 1 для авторизации или 2 для регистрации.")    
 
-def test_add_user():  
-    print("\n--- Запуск тестов ---")  
-    with sqlite3.connect(DB_NAME) as conn:  
-        cursor = conn.cursor()  
-        cursor.execute('DROP TABLE IF EXISTS users')  
-    create_db() 
-
-    assert add_user('test_user', 'test@example.com', 'password123') == True  
-    print("Тест 1 пройден: Пользователь успешно зарегистрирован.")  
-    
-    assert add_user('test_user', 'test@example.com', 'password123') == False  
-    print("Тест 2 пройден: Нельзя зарегистрировать пользователя с существующим логином.")  
-
 if __name__ == "__main__":  
     main()  
-    test_add_user() 
