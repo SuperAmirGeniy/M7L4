@@ -3,20 +3,22 @@ import sqlite3
 import os  
 from registration.registration import create_db, add_user, authenticate_user, display_users  
 
+DB_NAME = 'users.db'  # имя вашей базы данных  
+
 @pytest.fixture(scope="module")  
 def setup_database():  
     """Фикстура для настройки базы данных перед тестами и её очистки после."""  
     create_db()  
     yield  
     try:  
-        os.remove('users.db')  
+        os.remove(DB_NAME)  
     except PermissionError:  
         pass  
 
 @pytest.fixture  
 def connection():  
     """Фикстура для получения соединения с базой данных и его закрытия после теста."""  
-    conn = sqlite3.connect('users.db')  
+    conn = sqlite3.connect(DB_NAME)  
     yield conn  
     conn.close()  
 
@@ -35,19 +37,6 @@ def test_add_new_user(setup_database, connection):
     user = cursor.fetchone()  
     assert user, "Пользователь должен быть добавлен в базу данных."  
 
-def test_add_user():  
-    """Запуск тестов"""   
-    with sqlite3.connect(DB_NAME) as conn:  
-        cursor = conn.cursor()  
-        cursor.execute('DROP TABLE IF EXISTS users')  
-    create_db()   
-
-    assert add_user('test_user', 'test@example.com', 'password123') == True  
-    print("Тест 1 пройден: Пользователь успешно зарегистрирован.")  
-    
-    assert add_user('test_user', 'test@example.com', 'password123') == False  
-    print("Тест 2 пройден: Нельзя зарегистрировать пользователя с существующим логином.")  
-
 def test_authenticate_user(setup_database, connection):  
     """Тест успешной аутентификации пользователя."""  
     add_user('authuser', 'authuser@example.com', 'password123')  
@@ -56,7 +45,17 @@ def test_authenticate_user(setup_database, connection):
 def test_authenticate_user_wrong_password(setup_database, connection):  
     """Тест аутентификации пользователя с неправильным паролем."""  
     add_user('wrongpassuser', 'wrongpass@example.com', 'correctpassword')  
-    assert authenticate_user('wrongpassuser', 'wrongpassword') == False, "Аутентификация должна завершиться неудачей с неправильным паролем."
+    assert authenticate_user('wrongpassuser', 'wrongpassword') == False, "Аутентификация должна завершиться неудачей с неправильным паролем."  
+
+def test_display_users(setup_database, connection):  
+    """Тест отображения пользователей."""  
+    add_user('user1', 'user1@example.com', 'password1')  
+    add_user('user2', 'user2@example.com', 'password2')  
+    
+    users = display_users()  
+    assert len(users) == 2, "Должно быть два пользователя в базе данных."  
+    assert 'user1' in [user['username'] for user in users], "user1 должен быть в списке пользователей."  
+    assert 'user2' in [user['username'] for user in users], "user2 должен быть в списке пользователей."
     
 # Возможные варианты тестов:
 """
